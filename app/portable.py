@@ -1,13 +1,12 @@
 import flask
 import requests
+import cloudscraper
 from flask import request
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 
 app = flask.Flask(__name__)
-googlebot_headers = {
-    "User-Agent": "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.6533.119 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
-}
+
 html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -213,8 +212,9 @@ def bypass_paywall(url):
     """
     Bypass paywall for a given url
     """
+    scraper = cloudscraper.create_scraper()
     if url.startswith("http"):
-        response = requests.get(url, headers=googlebot_headers)
+        response = scraper.get(url)
         response.encoding = response.apparent_encoding
         return add_base_tag(response.text, response.url)
 
