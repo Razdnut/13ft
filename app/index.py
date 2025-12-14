@@ -3,11 +3,33 @@ import requests
 from flask import request
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
+import socket
+import ipaddress
 
 app = flask.Flask(__name__)
 googlebot_headers = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.6533.119 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
 }
+
+def is_safe_url(url):
+    """
+    Check if the URL is safe to request.
+    """
+    try:
+        hostname = urlparse(url).hostname
+        if not hostname:
+            return False
+
+        ip_address = socket.gethostbyname(hostname)
+        ip = ipaddress.ip_address(ip_address)
+
+        # Block requests to private, reserved, or loopback addresses
+        if ip.is_private or ip.is_reserved or ip.is_loopback:
+            return False
+
+        return True
+    except (ValueError, socket.gaierror):
+        return False
 
 def add_base_tag(html_content, original_url):
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -35,8 +57,11 @@ def bypass_paywall(url):
     """
     Bypass paywall for a given url
     """
+    if not is_safe_url(url):
+        return "Invalid or unsafe URL", 400
+
     if url.startswith("http"):
-        response = requests.get(url, headers=googlebot_headers)
+        response = requests.get(url, headers=googlebot_headers, timeout=5, allow_redirects=False)
         response.encoding = response.apparent_encoding
         return add_base_tag(response.text, response.url)
 
