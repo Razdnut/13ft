@@ -2,6 +2,7 @@ import flask
 import requests
 import cloudscraper
 from flask import request
+from functools import lru_cache
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 
@@ -208,9 +209,11 @@ def add_base_tag(html_content, original_url):
     
     return str(soup)
 
+@lru_cache(maxsize=128)
 def bypass_paywall(url):
     """
-    Bypass paywall for a given url
+    Bypass paywall for a given url.
+    This function is cached to prevent redundant network requests and parsing for the same URL.
     """
     scraper = cloudscraper.create_scraper()
     if url.startswith("http"):
