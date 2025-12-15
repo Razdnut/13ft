@@ -188,7 +188,8 @@ html = """
 """
 
 def add_base_tag(html_content, original_url):
-    soup = BeautifulSoup(html_content, 'html.parser')
+    # Switched to lxml for faster HTML parsing
+    soup = BeautifulSoup(html_content, 'lxml')
     parsed_url = urlparse(original_url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/"
     
