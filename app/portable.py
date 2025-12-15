@@ -4,6 +4,7 @@ import cloudscraper
 from flask import request
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
+from security_utils import is_safe_url
 
 app = flask.Flask(__name__)
 
@@ -214,6 +215,8 @@ def bypass_paywall(url):
     """
     scraper = cloudscraper.create_scraper()
     if url.startswith("http"):
+        if not is_safe_url(url):
+            return "Unsafe URL detected.", 400
         response = scraper.get(url)
         response.encoding = response.apparent_encoding
         return add_base_tag(response.text, response.url)
