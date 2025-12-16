@@ -218,7 +218,7 @@ def bypass_paywall(url):
     if url.startswith("http"):
         if not is_safe_url(url):
             return "Unsafe URL detected.", 400
-        response = scraper.get(url)
+        response = scraper.get(url, allow_redirects=False)
         response.encoding = response.apparent_encoding
         return add_base_tag(response.text, response.url)
 
