@@ -3,6 +3,7 @@ import requests
 from flask import request
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
+from cachetools import cached, TTLCache
 from security_utils import is_safe_url
 
 app = flask.Flask(__name__)
@@ -33,6 +34,7 @@ def add_base_tag(html_content, original_url):
     
     return str(soup)
 
+@cached(cache=TTLCache(maxsize=128, ttl=600))
 def bypass_paywall(url):
     """
     Bypass paywall for a given url
