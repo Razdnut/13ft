@@ -146,11 +146,11 @@
         <input type="checkbox" id="dark-mode-toggle">
         <label for="dark-mode-toggle" title="Toggle Dark Mode"></label>
     </div>
-    <form action="/article" method="post">
+    <form action="/article" method="post" id="paywall-form">
         <h1>Enter Website Link</h1>
         <label for="link">Link of the website you want to remove paywall for:</label>
         <input type="text" id="link" name="link" required autofocus>
-        <input type="submit" value="Submit">
+        <input type="submit" value="Submit" id="submit-button">
     </form>
 
     <script>
@@ -169,6 +169,22 @@
             } else {
                 document.body.classList.remove("dark-mode");
                 localStorage.setItem('theme', 'light');
+            }
+        });
+
+        const paywallForm = document.getElementById('paywall-form');
+        const submitButton = document.getElementById('submit-button');
+
+        paywallForm.addEventListener('submit', () => {
+            submitButton.disabled = true;
+            submitButton.value = 'Loading...';
+        });
+
+        // Re-enable the button if the user navigates back to the page
+        window.addEventListener('pageshow', () => {
+            if (submitButton.disabled) {
+                submitButton.disabled = false;
+                submitButton.value = 'Submit';
             }
         });
     </script>
