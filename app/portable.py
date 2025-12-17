@@ -212,15 +212,29 @@ def add_base_tag(html_content, original_url):
 
 def bypass_paywall(url):
     """
-    Bypass paywall for a given url
+    Bypass paywall for a given url, handling redirects securely.
     """
     scraper = cloudscraper.create_scraper()
     if url.startswith("http"):
-        if not is_safe_url(url):
-            return "Unsafe URL detected.", 400
-        response = scraper.get(url)
-        response.encoding = response.apparent_encoding
-        return add_base_tag(response.text, response.url)
+        max_redirects = 5
+        for _ in range(max_redirects):
+            if not is_safe_url(url):
+                return "Unsafe URL detected.", 400
+
+            response = scraper.get(url, allow_redirects=False)
+
+            if response.status_code in [301, 302, 303, 307, 308]:
+                redirect_url = response.headers.get('Location')
+                if not redirect_url:
+                    return "Redirect detected, but no Location header found.", 400
+
+                url = urljoin(url, redirect_url)
+                continue
+
+            response.encoding = response.apparent_encoding
+            return add_base_tag(response.text, response.url)
+
+        return "Exceeded maximum number of redirects.", 400
 
     try:
         return bypass_paywall("https://" + url)
