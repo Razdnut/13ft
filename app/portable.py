@@ -216,11 +216,22 @@ def bypass_paywall(url):
     """
     scraper = cloudscraper.create_scraper()
     if url.startswith("http"):
-        if not is_safe_url(url):
-            return "Unsafe URL detected.", 400
-        response = scraper.get(url)
-        response.encoding = response.apparent_encoding
-        return add_base_tag(response.text, response.url)
+        redirect_count = 0
+        max_redirects = 5
+        while redirect_count < max_redirects:
+            if not is_safe_url(url):
+                return "Unsafe URL detected.", 400
+            response = scraper.get(url, allow_redirects=False)
+            if response.is_redirect:
+                redirect_url = response.headers['Location']
+                if not is_safe_url(redirect_url):
+                    return "Unsafe redirect detected.", 400
+                url = redirect_url
+                redirect_count += 1
+            else:
+                response.encoding = response.apparent_encoding
+                return add_base_tag(response.text, response.url)
+        return "Too many redirects.", 400
 
     try:
         return bypass_paywall("https://" + url)
