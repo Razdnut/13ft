@@ -1,5 +1,6 @@
 import flask
 import requests
+import functools
 from flask import request
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
@@ -33,6 +34,8 @@ def add_base_tag(html_content, original_url):
     
     return str(soup)
 
+# ⚡ Bolt: Use LRU cache to avoid memory leaks and improve performance
+@functools.lru_cache(maxsize=128)
 def bypass_paywall(url):
     """
     Bypass paywall for a given url
